@@ -1,13 +1,11 @@
 # What is Apocrypha?
-**Apocrypha is a open source, automated builder to create an enterprise-level, bare-metal kubernetes cluster.**
+**Apocrypha is a boilerplate to build a bare-metal kubernetes cluster.**
 
 # Prerequisities
 
 * Ubuntu 22.04 
-* AWS credentials (~/.aws/credentials)
-* Secrets managed by AWS Secret manager
-* Git SSH Key
-* 1 console, 1 control plane, and at least 3 storage nodes named with storage-node and raw disk attached
+* AWS ParameterStore
+* 1 control plane node and at least 3 storage nodes with name containing `storage-node` and raw disk attached
 * Minimum 8gb of static ram for each nodes
 
 # Installation
