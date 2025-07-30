@@ -10,36 +10,27 @@
 
 # Installation
 
-## Create vm
-* If you're using Hyper-V, make sure you have `External Switch` for static ip allocation and `Microsoft UEFI Certificate Authority` option has turned on
+## Create vm (Hyper-V)
+* Make sure you have `External Switch` for static ip allocation and option `Microsoft UEFI Certificate Authority` is checked.
 * Download ubuntu iso from [Ubuntu 22.04 live server](https://releases.ubuntu.com/jammy/ubuntu-22.04.5-live-server-amd64.iso)
-* Duplicate /etc/cloud/cloud.cfg.d/user-data on iso. See with user-data on the project root
+* Copy `user-data` into /etc/cloud/cloud.cfg.d/user-data of iso
 * Create vms with kernal parameter
 ```bash
 ip=<ip:-192.168.0.15>::<gateway_ip:-192.168.0.1>:<subnet_mask:-255.255.255.0>::<nic:-eth0>:none:<dns:-1.1.1.1:8.8.8.8> hostname=<hostname:-my-storage-node-1> quiet autoinstall
 ```
 
 ## Setup dev environment
-If all vm has created, you can set up k8s cluster with ansible. If ansible(and docker) does not installed yet, follow commands:
+* If all vm has created, you can set up k8s cluster with ansible. If ansible(and docker) does not installed yet, follow commands:
 ```bash
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3 get-pip.py --user
 python3 -m pip install --user ansible
 echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
 ansible --version
-sudo apt-get install docker.io
-sudo usermod -aG docker "$USER"
-newgrp docker
-DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-mkdir -p $DOCKER_CONFIG/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.35.1/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-\. "$HOME/.nvm/nvm.sh"
-nvm install 22 
 ```
-(If you use ansible vscode extension, set `"ansible.ansible.path": "~/.local/bin/ansible"` for autocomplete.)
-
-Then simply run `ansible-playbook site.yml -e env=dev -e role=cluster` in a project root for bootstrap k8s cluster.
+(If you use ansible vscode extension, set `"ansible.ansible.path": "~/.local/bin/ansible"` for autocomplete)
+* Then simply run `ansible-playbook site.yml -e env=dev -e role=cluster` in a project root for bootstrap the k8s cluster.
+* and run `ansible-playbook site.yml -e env=dev -e role=console` for bootstrap the console.
 
 ## Argocd
 * Get argocd initial password by `kubectl get secret argocd-initial-admin-secret -n argocd -o=jsonpath='{.data.password}' | base64 -d`
@@ -51,7 +42,7 @@ Then simply run `ansible-playbook site.yml -e env=dev -e role=cluster` in a proj
 * Prepare server key set by `wg genkey` and `echo {private key} | wg pubkey`
 * Create Secret on your provider. I strongly recommned to use `AWS ParameterStore`, so that you can easily set configs like this:
 `./ssm set /wireguard -e '{"LIST":[{"NAME":"foo","S_KEY":"..","S_PUBKEY":"..","S_NET":"172.16.16.0/24","S_PORT":51820,"C_PUBKEY":"..","C_NET":"172.16.100.0/24"}]}' -s`
-* **All properties must be unique.**
+* **Make sure all properties are unique over whole interfaces**
 * Update secret `wg-config`
 * Client config might be like this: 
 ```
