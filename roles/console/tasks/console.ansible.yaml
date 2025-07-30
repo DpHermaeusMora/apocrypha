@@ -1,17 +1,4 @@
 ---
-- name: Download pip
-  become: false
-  get_url:
-    url: https://bootstrap.pypa.io/get-pip.py
-    dest: '{{ ansible_env.HOME }}/get-pip.py'
-    mode: '0644'
-
-- name: Install pip
-  become: false
-  shell: python3 {{ ansible_env.HOME }}/get-pip.py --user >> {{ ansible_env.HOME }}/get_pip.log
-  args:
-    creates: "{{ ansible_env.HOME }}/get_pip.log"
-
 - name: Install pip libraries
   become: false
   pip:
