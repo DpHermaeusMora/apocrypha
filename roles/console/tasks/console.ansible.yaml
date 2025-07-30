@@ -62,18 +62,6 @@
     name: terraform
     state: present
 
-- name: Install Argocd
-  get_url:
-    url: "https://github.com/argoproj/argo-cd/releases/download/v3.0.6/argocd-linux-{{ arch }}"
-    dest: /usr/local/bin/argocd
-    mode: '0755'
-
-# - name: Install Telepresence
-#   get_url:
-#     url: "https://github.com/telepresenceio/telepresence/releases/latest/download/telepresence-linux-{{ arch }}"
-#     dest: /usr/local/bin/telepresence
-#     mode: '0755'
-
 - name: Install Wireguard
   apt:
     name: wireguard
