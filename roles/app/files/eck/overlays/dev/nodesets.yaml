@@ -1,0 +1,77 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: es
+spec:
+  version: 8.16.1
+  nodeSets:
+    - name: master
+      count: 3
+      config:
+        node.roles: ["master"]
+      podTemplate:
+        spec:
+          initContainers:
+            - name: increase-vm
+              command:
+                - sh
+                - -c
+                - |
+                  sysctl -w vm.max_map_count=262144
+              securityContext:
+                privileged: true
+                runAsUser: 0
+            - name: install-plugins
+              command:
+                - sh
+                - -c
+                - |
+                  bin/elasticsearch-plugin install analysis-nori
+                  curl https://anax015obs.s3.ap-northeast-2.amazonaws.com/dict/synonyms_dict.txt > /tmp/synonyms_dict.txt
+                  curl https://anax015obs.s3.ap-northeast-2.amazonaws.com/dict/user_dict.txt > /tmp/user_dict.txt
+              volumeMounts:
+                - name: dictionaries
+                  mountPath: /tmp
+          containers:
+            - name: elasticsearch
+              volumeMounts:
+                - name: dictionaries
+                  mountPath: /usr/share/elasticsearch/config/dictionaries
+          volumes:
+            - name: dictionaries
+              emptyDir: {}
+    - name: data
+      count: 3
+      config:
+        node.roles: ["data", "ingest"]
+      podTemplate:
+        spec:
+          initContainers:
+            - name: increase-vm
+              command:
+                - sh
+                - -c
+                - |
+                  sysctl -w vm.max_map_count=262144
+              securityContext:
+                privileged: true
+                runAsUser: 0
+            - name: install-plugins
+              command:
+                - sh
+                - -c
+                - |
+                  bin/elasticsearch-plugin install analysis-nori
+                  curl https://anax015obs.s3.ap-northeast-2.amazonaws.com/dict/synonyms_dict.txt > /tmp/synonyms_dict.txt
+                  curl https://anax015obs.s3.ap-northeast-2.amazonaws.com/dict/user_dict.txt > /tmp/user_dict.txt
+              volumeMounts:
+                - name: dictionaries
+                  mountPath: /tmp
+          containers:
+            - name: elasticsearch
+              volumeMounts:
+                - name: dictionaries
+                  mountPath: /usr/share/elasticsearch/config/dictionaries
+          volumes:
+            - name: dictionaries
+              emptyDir: {}

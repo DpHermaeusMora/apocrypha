@@ -1,0 +1,10 @@
+namespace: eck-dev
+
+resources:
+  - ../../base
+
+patches:
+  - path: nodesets.yaml
+    target:
+      kind: Elasticsearch
+      name: es

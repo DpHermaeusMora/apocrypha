@@ -1,0 +1,14 @@
+---
+- name: NotifyArgocdInitialPassword
+  debug:
+    msg: |
+      You have to manually change the argocd admin password on Web UI.
+      The default username is admin, password is {{ argocd_password }}.
+      To mute this message, Run `kubectl delete secret -n argocd argocd-initial-admin-secret`.
+
+- name: NotifyECKInitialPassword
+  debug:
+    msg: |
+      You have to manually change the elastic user password.
+      The default username is elastic, password is {{ eck_password }}.
+      To mute this message, Run `kubectl delete secret -n eck-{{ env }} es-es-elastic-user`.

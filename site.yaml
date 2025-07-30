@@ -1,0 +1,76 @@
+---
+- name: Select hosts
+  hosts: localhost
+  gather_facts: false
+  vars:
+    env_list:
+      - dev
+      - prod
+    internal_role_list:
+      - cluster
+      - cluster-
+    worker_role_list:
+      - bluestore-
+    control_plane_role_list:
+      - console
+    console_role_list:
+      - app
+      - ceph-
+      - statefulset
+  tasks:
+    - name: Assert env has provided
+      assert:
+        that:
+          - env is defined
+          - env in env_list
+
+    - name: Combine all roles
+      set_fact:
+        all_roles: "{{ internal_role_list + worker_role_list + control_plane_role_list + console_role_list }}"
+
+    - name: Assert role has provided
+      assert:
+        that:
+          - role is defined
+          - role in all_roles
+        fail_msg: "role must be one of {{ all_roles }}"
+
+    - name: Set internal group
+      add_host:
+        groups: target_group
+        hostname: "{{ item }}"
+      loop: "{{ groups[env] }}"
+      when: role in internal_role_list
+
+    - name: Set control plane group
+      add_host:
+        groups: target_group
+        hostname: "{{ item }}"
+      loop: "{{ groups[env] | intersect(groups['control-plane']) }}"
+      when: role in control_plane_role_list
+
+    - name: Set worker group
+      add_host:
+        groups: target_group
+        hostname: "{{ item }}"
+      loop: "{{ groups[env] | intersect(groups['worker']) }}"
+      when: role in worker_role_list
+
+    - name: Set console group
+      add_host:
+        groups: target_group
+        hostname: console
+      when: role in console_role_list
+
+- name: Run role
+  hosts: target_group
+  vars:
+    arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+  tasks:
+    - name: Load env
+      include_vars:
+        file: "{{ playbook_dir }}/env/{{ env }}.yaml"
+
+    - name: Run role
+      include_role:
+        name: "{{ role }}"

@@ -1,0 +1,48 @@
+---
+- name: Label storage-node
+  shell: |
+    set -o pipefail
+    kubectl get nodes --no-headers |
+    awk '$1 ~ /storage-node/ {print $1}' |
+    xargs -r -n1 -I{} kubectl label node {} 'node-role.kubernetes.io/storage-node=' --overwrite
+  changed_when: true
+  args:
+    executable: /bin/bash
+
+- name: Create Namespace
+  kubernetes.core.k8s:
+    name: rook-ceph
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Setup rook-ceph
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: rook-ceph
+        namespace: argocd
+      spec:
+        project: default
+        sources:
+          - repoURL: "{{ GIT_REPO_URL }}"
+            targetRevision: "{{ env }}"
+            path: "roles/app/files/rook_ceph"
+          - repoURL: https://charts.rook.io/release
+            chart: rook-ceph
+            targetRevision: "{{ ROOK_CEPH_VERSION }}"
+          - repoURL: https://charts.rook.io/release
+            chart: rook-ceph-cluster
+            targetRevision: "{{ ROOK_CEPH_VERSION }}"
+            helm:
+              valueFiles:
+                - "values.yaml"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: rook-ceph
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true

@@ -1,0 +1,7 @@
+resources:
+  - cluster.yaml
+  - init_db.yaml
+  - rbac.yaml
+  - operator.yaml
+  - vtgate_service.yaml
+  - vtadmin_service.yaml

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: es
+  labels:
+    common.k8s.elastic.co/type: elasticsearch
+    elasticsearch.k8s.elastic.co/cluster-name: es
+spec:
+  selector:
+    common.k8s.elastic.co/type: elasticsearch
+    elasticsearch.k8s.elastic.co/cluster-name: es
+  ports:
+    - name: https
+      port: 9200
+      protocol: TCP
+      targetPort: 9200

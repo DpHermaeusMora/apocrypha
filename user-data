@@ -1,0 +1,43 @@
+#cloud-config
+autoinstall:
+  version: 1
+  apt:
+    geoip: false
+    preserve_sources_list: false
+    primary:
+      - arches: [amd64, i386]
+        uri: http://kr.archive.ubuntu.com/ubuntu
+      - arches: [default]
+        uri: http://ports.ubuntu.com/ubuntu-ports
+  kernel:
+    package: linux-generic
+  storage:
+    layout:
+      name: direct
+  ssh:
+    install-server: true
+  user-data:
+    disable_root: true
+    users:
+      - default
+      - name: ubuntu
+        ssh_authorized_keys:
+          - !Ref
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        groups: sudo
+        lock_passwd: true
+        shell: /bin/bash
+  late-commands:
+    - |
+      HOST=""
+      for ARG in $(cat /proc/cmdline); do
+        case $ARG in
+          hostname=*)
+            HOST="${ARG#hostname=}"
+            break
+            ;;
+        esac
+      done
+      echo "$HOST" > /target/etc/hostname
+      sed -i "s/^127\.0\.1\.1\s.*/127.0.1.1\t${HOST}/" /target/etc/hosts
+      curtin in-target --target=/target hostnamectl set-hostname "$HOST"

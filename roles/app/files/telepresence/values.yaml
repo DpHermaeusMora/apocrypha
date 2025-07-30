@@ -1,0 +1,11 @@
+agent:
+  initSecurityContext:
+    runAsUser: 0
+    runAsNonRoot: false
+    capabilities:
+      add: ["NET_ADMIN"]
+  securityContext:
+    runAsUser: 0
+    runAsNonRoot: false
+    capabilities:
+      add: ["NET_ADMIN"]

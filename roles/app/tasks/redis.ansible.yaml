@@ -1,0 +1,31 @@
+---
+- name: Create namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "redis-{{ env }}"
+
+- name: Setup redis cluster
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: redis-cluster
+        namespace: argocd
+      spec:
+        project: default
+        source:
+          repoURL: "{{ GIT_REPO_URL }}"
+          targetRevision: "{{ env }}"
+          path: "roles/app/files/redis/overlays/{{ env }}"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: "redis-{{ env }}"
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true

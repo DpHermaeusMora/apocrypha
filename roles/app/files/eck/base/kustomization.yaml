@@ -1,0 +1,5 @@
+resources:
+  - es.yaml
+  - es_service.yaml
+  - kibana.yaml
+  - kibana_service.yaml

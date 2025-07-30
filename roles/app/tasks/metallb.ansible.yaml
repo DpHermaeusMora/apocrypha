@@ -1,0 +1,48 @@
+---
+- name: Update kube-proxy strictARP
+  shell: |
+    set -o pipefail
+    kubectl get configmap kube-proxy -n kube-system -o yaml | \
+    sed -e 's/strictARP: true/strictARP: false/' | \
+    kubectl apply -f - -n kube-system
+  changed_when: true
+  args:
+    executable: /bin/bash
+
+- name: Create Namespace
+  kubernetes.core.k8s:
+    name: metallb-system
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Setup metallb
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: metallb
+        namespace: argocd
+      spec:
+        project: default
+        sources:
+          - repoURL: "{{ GIT_REPO_URL }}"
+            targetRevision: "{{ env }}"
+            path: "roles/app/files/metallb"
+          - repoURL: https://metallb.github.io/metallb
+            chart: metallb
+            targetRevision: "{{ METALLB_VERSION }}"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: metallb-system
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+        ignoreDifferences:
+          - group: apiextensions.k8s.io
+            kind: CustomResourceDefinition
+            name: bgppeers.metallb.io
+            jsonPointers:
+              - /spec/conversion/webhook/clientConfig/caBundle

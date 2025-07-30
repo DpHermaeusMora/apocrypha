@@ -1,0 +1,14 @@
+toolbox:
+  enabled: true
+
+cephClusterSpec:
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node-role.kubernetes.io/storage-node
+                  operator: Exists
+  storage:
+    deviceFilter: "^sd[b-z]"

@@ -1,0 +1,5 @@
+namespace: redis-dev
+
+resources:
+  - ../../base
+  - configmap.yaml

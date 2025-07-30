@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redisinsight
+  labels:
+    app: redisinsight
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: redisinsight
+  template:
+    metadata:
+      labels:
+        app: redisinsight
+    spec:
+      volumes:
+        - name: redisinsight
+          emptyDir: {}
+      initContainers:
+        - name: init
+          image: busybox
+          command:
+            - /bin/sh
+            - "-c"
+            - |
+              chown -R 1000 /data
+          resources: {}
+          volumeMounts:
+            - name: redisinsight
+              mountPath: /data
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      containers:
+        - name: redisinsight
+          image: redis/redisinsight:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 1000m
+              memory: 1000Mi
+          volumeMounts:
+            - name: redisinsight
+              mountPath: /data
+          env:
+            - name: RI_APP_HOST
+              value: "0.0.0.0"
+            - name: RI_APP_PORT
+              value: "5540"
+          ports:
+            - containerPort: 5540
+              protocol: TCP

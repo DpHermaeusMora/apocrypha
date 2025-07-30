@@ -1,0 +1,56 @@
+---
+- name: Helm repo add
+  kubernetes.core.helm_repository:
+    name: elastic
+    url: https://helm.elastic.co
+    state: present
+    force_update: true
+
+- name: Create Namespace
+  kubernetes.core.k8s:
+    name: "eck-{{ env }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Setup ECK
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: eck-{{ env }}
+        namespace: argocd
+      spec:
+        project: default
+        sources:
+          - repoURL: "{{ GIT_REPO_URL }}"
+            targetRevision: "{{ env }}"
+            path: "roles/app/files/eck/overlays/{{ env }}"
+          - repoURL: https://helm.elastic.co
+            chart: eck-operator
+            targetRevision: "{{ ECK_VERSION }}"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: "eck-{{ env }}"
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+
+- name: Get ECK Initial Password
+  shell: |
+    set -o pipefail
+    kubectl get secret -n eck-{{ env }} es-es-elastic-user -o jsonpath='{.data.elastic}' | base64 -d
+  register: eck_password
+  failed_when: false
+  changed_when: true
+  args:
+    executable: /bin/bash
+
+- name: Set ECK Initial Password
+  set_fact:
+    eck_password: "{{ eck_password.stdout }}"
+  changed_when: true
+  notify: NotifyECKInitialPassword
+  when: eck_password.stdout != ""

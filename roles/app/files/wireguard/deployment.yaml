@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard
+spec:
+  selector:
+    matchLabels:
+      name: wireguard
+  template:
+    metadata:
+      labels:
+        name: wireguard
+    spec:
+      initContainers:
+        - name: "wireguard-template-replacement"
+          image: "busybox"
+          command:
+            - sh
+            - -c
+            - |
+              ENI=$(ip route get 8.8.8.8 | grep 8.8.8.8 | awk '{print $5}')
+              for template in /etc/wireguard-config/wg*.conf.template; do 
+                if [ -f "$template" ]; then
+                  filename=$(basename "$template" .template)
+                  sed "s#ENI#$ENI#g" "$template" > "/etc/wireguard/$filename"
+                  chmod 400 "/etc/wireguard/$filename"
+                  echo "Processed $template -> /etc/wireguard/$filename"
+                fi
+              done
+          volumeMounts:
+            - name: wg-config
+              mountPath: /etc/wireguard-config/
+            - name: wg-base
+              mountPath: /etc/wireguard/
+      containers:
+        - name: "wireguard"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 1000m
+              memory: 1000Mi
+          image: "linuxserver/wireguard:latest"
+          ports:
+            - containerPort: 51820
+            - containerPort: 51821
+            - containerPort: 51822
+          env:
+            - name: "TZ"
+              value: "Asia/Seoul"
+          volumeMounts:
+            - name: wg-base
+              mountPath: /etc/wireguard/
+              readOnly: true
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+      volumes:
+        - name: wg-config
+          secret:
+            secretName: wg-config
+        - name: wg-base
+          emptyDir: {}

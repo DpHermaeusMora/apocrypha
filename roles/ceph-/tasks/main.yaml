@@ -1,0 +1,74 @@
+---
+- name: Patch the CephCluster cleanupPolicy
+  shell: |
+    kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
+  # kubernetes.core.k8s:
+  #   state: patched
+  #   api_version: "ceph.rook.io/v1"
+  #   kind: CephCluster
+  #   name: rook-ceph
+  #   namespace: rook-ceph
+  #   definition:
+  #     spec:
+  #       cleanupPolicy:
+  #         confirmation: "yes-really-destroy-data"
+  ignore_errors: true
+
+- name: Fetch rook crds
+  shell: kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'
+  register: rook_crd_list
+  ignore_errors: true
+
+- name: Remove crd finalizers
+  shell: | 
+    kubectl get -n rook-ceph {{ item }} -o name | xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}'
+  loop: "{{ rook_crd_list.stdout_lines }}"
+  ignore_errors: true
+
+- name: Remove mon endpoints finalizers
+  shell: |
+    kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}'
+  ignore_errors: true
+
+- name: Remove mon secrets finalizers
+  shell: | 
+    kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}'
+  ignore_errors: true
+
+- name: Get rest rook finalizers
+  shell: | 
+    kubectl api-resources --namespaced --verbs=list,patch -o name | grep -v / | grep ^ceph
+  register: rest_rook
+  ignore_errors: true
+
+- name: Remove rest rook
+  shell: |
+    kubectl get {{ item }} -n rook-ceph -o name --ignore-not-found | xargs -r -n1 kubectl patch -n rook-ceph --type=merge -p '{"metadata":{"finalizers":[]}}'
+  loop: "{{ rest_rook.stdout_lines }}"
+  ignore_errors: true
+
+- name: Remove helm release 
+  kubernetes.core.helm:
+    state: absent
+    release_name: rook-ceph
+    release_namespace: rook-ceph
+  loop:
+    - rook-ceph
+    - rook-ceph-cluster
+  ignore_errors: true
+  
+- name: Remove ns 
+  shell: kubectl delete namespace rook-ceph
+  ignore_errors: true
+
+# kubectl -n rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
+# for crd in $(kubectl get crd -n rook-ceph | awk '/ceph.rook.io/ {print $1}'); do
+#     kubectl get -n rook-ceph "$crd" -o name | \
+#     xargs -I {} kubectl patch -n rook-ceph {} --type merge -p '{"metadata":{"finalizers": []}}'
+# done
+# kubectl -n rook-ceph patch configmap rook-ceph-mon-endpoints --type merge -p '{"metadata":{"finalizers": []}}'
+# kubectl -n rook-ceph patch secrets rook-ceph-mon --type merge -p '{"metadata":{"finalizers": []}}'
+
+# helm delete rook-ceph -n rook-ceph
+# helm delete rook-ceph-cluster -n rook-ceph
+# kubectl delete namespace rook-ceph

@@ -1,0 +1,41 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: wg-config
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: cluster-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: wg-config
+    template:
+      engineVersion: v2
+      templateFrom:
+        - target: Data
+          literal: |-
+            {{- range $index, $config := .LIST | fromJson }}
+            wg{{ $index }}.conf.template: |
+              [Interface]
+              Address = {{ $config.S_NET }}
+              ListenPort = {{ $config.S_PORT }}
+              PrivateKey = {{ $config.S_KEY }}
+              MTU = 1500
+              DNS = 10.96.0.10, 8.8.8.8
+              PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o ENI -j MASQUERADE
+              PostUp = iptables -t nat -A POSTROUTING -s {{ $config.S_NET }} -o ENI -j MASQUERADE
+              PostUp = iptables -t nat -A POSTROUTING -s {{ $config.C_NET }} -o ENI -j MASQUERADE
+              PostUp = sysctl -w -q net.ipv4.ip_forward=1
+              PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o ENI -j MASQUERADE
+              PostDown = iptables -t nat -D POSTROUTING -s {{ $config.S_NET }} -o ENI -j MASQUERADE
+              PostDown = iptables -t nat -D POSTROUTING -s {{ $config.C_NET }} -o ENI -j MASQUERADE
+              PostDown = sysctl -w -q net.ipv4.ip_forward=0
+
+              [Peer]
+              PublicKey = {{ $config.C_PUBKEY }}
+              AllowedIPs = {{ $config.C_NET }}
+              PersistentKeepalive = 25
+            {{- end }}
+  dataFrom:
+    - extract:
+        key: /apocrypha/wg

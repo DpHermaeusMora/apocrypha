@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ca-issuer
+  namespace: cert-manager
+spec:
+  acme:
+    server: "https://acme-v02.api.letsencrypt.org/directory"
+    email: "dp.hermaeusmora@gmail.com"
+    privateKeySecretRef:
+      name: ca-key-pair
+    solvers:
+      - dns01:
+          route53:
+            region: "ap-northeast-2"
+            accessKeyIDSecretRef:
+              name: aws-credentials-secret
+              key: AWS_ACCESS_KEY_ID
+            secretAccessKeySecretRef:
+              name: aws-credentials-secret
+              key: AWS_SECRET_ACCESS_KEY

@@ -1,0 +1,14 @@
+---
+- name: List ceph_bluestore disks
+  shell: lsblk -f | grep ceph_bluestore | awk {'print $1'}
+  register: bluestore_disks
+
+- name: Info bluestore_disks
+  debug: 
+    msg: "{{ item }}"
+  loop: "{{ bluestore_disks.stdout_lines }}"
+
+- name: Remove partion metadata
+  become: true
+  shell: dd if=/dev/zero of=/dev/{{ item }} bs=1M status=progress || true
+  loop: "{{ bluestore_disks.stdout_lines }}"

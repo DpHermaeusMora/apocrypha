@@ -1,0 +1,88 @@
+---
+# - name: Install metric server
+#   kubernetes.core.k8s:
+#     state: present
+#     src: https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# - name: Patch metrics-server
+#   kubernetes.core.k8s:
+#     state: patched
+#     kind: Deployment
+#     name: metrics-server
+#     namespace: kube-system
+#     definition:
+#       spec:
+#         metadata:
+#           labels:
+#             k8s-app: metrics-server
+#         template:
+#           spec:
+#             affinity:
+#               nodeAffinity:
+#                 requiredDuringSchedulingIgnoredDuringExecution:
+#                   nodeSelectorTerms:
+#                     - matchExpressions:
+#                         - key: 'node-role.kubernetes.io/control-plane'
+#                           operator: Exists
+#             tolerations:
+#               - key: 'node-role.kubernetes.io/control-plane'
+#                 operator: 'Exists'
+#                 effect: 'NoSchedule'
+#             containers:
+#               - name: metrics-server
+#                 # image: k8s.gcr.io/metrics-server/metrics-server:v0.6.2
+#                 args:
+#                   - --v=5
+#                   - --secure-port=10250
+#                   - --cert-dir=/tmp
+#                   - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+#                   - --kubelet-use-node-status-port
+#                   - --metric-resolution=15s
+#                   - --kubelet-insecure-tls
+
+# - name: Load Keys
+#   include_tasks: keys.ansible.yaml
+
+# - name: Create argocd
+#   include_tasks: argocd.ansible.yaml
+
+# - name: Create ceph
+#   include_tasks: ceph.ansible.yaml
+
+# - name: Create external secrets
+#   include_tasks: external_secrets.ansible.yaml
+
+# - name: Create cert manager
+#   include_tasks: cert_manager.ansible.yaml
+
+# - name: Create metallb
+#   import_tasks: metallb.ansible.yaml
+
+# - name: Create wireguard
+#   import_tasks: wireguard.ansible.yaml
+
+# - name: Create vitess
+#   import_tasks: vitess.ansible.yaml
+
+# - name: Create eck
+#   import_tasks: eck.ansible.yaml
+
+- name: Create redis
+  import_tasks: redis.ansible.yaml
+
+# - name: Create api
+#   import_tasks: api.ansible.yaml
+
+- name: Setup istio
+  import_tasks: istio.ansible.yaml
+
+# - name: Setup Telepresence
+#   kubernetes.core.helm:
+#     kubeconfig_path: '~/.kube/config'
+#     state: present
+#     name: traffic-manager
+#     chart_ref: oci://ghcr.io/telepresenceio/telepresence-oss
+#     namespace: ambassador
+#     create_namespace: true
+#     values_files:
+#       - "{{ role_path + '/files/telepresence/values.yaml' }}"

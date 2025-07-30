@@ -1,0 +1,48 @@
+console:
+  hosts:
+    localhost:
+
+dev:
+  hosts:
+    dev-apocrypha-control-plane:
+      ansible_host: 192.168.0.16
+    dev-apocrypha-storage-node1:
+      ansible_host: 192.168.0.21
+    dev-apocrypha-storage-node2:
+      ansible_host: 192.168.0.22
+    dev-apocrypha-storage-node3:
+      ansible_host: 192.168.0.23
+    dev-apocrypha-worker1:
+      ansible_host: 192.168.0.17
+    dev-apocrypha-worker2:
+      ansible_host: 192.168.0.18
+    dev-apocrypha-worker3:
+      ansible_host: 192.168.0.19
+    dev-apocrypha-worker4:
+      ansible_host: 192.168.0.20
+    dev-apocrypha-worker5:
+      ansible_host: 192.168.0.24
+    dev-apocrypha-worker6:
+      ansible_host: 192.168.0.25
+    dev-apocrypha-worker7:
+      ansible_host: 192.168.0.26
+    dev-apocrypha-worker8:
+      ansible_host: 192.168.0.27
+
+control-plane:
+  hosts:
+    dev-apocrypha-control-plane:
+
+worker:
+  hosts:
+    dev-apocrypha-storage-node1:
+    dev-apocrypha-storage-node2:
+    dev-apocrypha-storage-node3:
+    dev-apocrypha-worker1:
+    dev-apocrypha-worker2:
+    dev-apocrypha-worker3:
+    dev-apocrypha-worker4:
+    dev-apocrypha-worker5:
+    dev-apocrypha-worker6:
+    dev-apocrypha-worker7:
+    dev-apocrypha-worker8:

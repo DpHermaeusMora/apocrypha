@@ -1,0 +1,56 @@
+---
+- name: Helm repo add
+  kubernetes.core.helm_repository:
+    name: jetstack
+    url: https://charts.jetstack.io
+    state: present
+    force_update: true
+
+- name: Create Namespace
+  kubernetes.core.k8s:
+    name: cert-manager
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create AWS Credentials Secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: aws-credentials-secret
+        namespace: cert-manager
+      type: Opaque
+      stringData:
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+
+- name: Setup cert manager
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: cert-manager
+        namespace: argocd
+      spec:
+        project: default
+        sources:
+          - repoURL: "{{ GIT_REPO_URL }}"
+            targetRevision: "{{ env }}"
+            path: "roles/app/files/cert_manager"
+          - repoURL: https://charts.jetstack.io
+            chart: cert-manager
+            targetRevision: "{{ CERT_MANAGER_VERSION }}"
+            helm:
+              valueFiles:
+                - "values.yaml"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: cert-manager
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true

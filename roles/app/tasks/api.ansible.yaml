@@ -1,0 +1,47 @@
+---
+- name: Create namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ env }}"
+        labels:
+          'istio-injection': enabled
+
+- name: Create AWS Credentials Secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: aws-credentials-secret
+        namespace: "{{ env }}"
+      type: Opaque
+      stringData:
+        AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+        AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+
+
+- name: Setup api server
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: api-server
+        namespace: argocd
+      spec:
+        project: default
+        source:
+          repoURL: "{{ GIT_REPO_URL }}"
+          targetRevision: "{{ env }}"
+          path: "roles/app/files/api/overlays/{{ env }}"
+        destination:
+          server: 'https://kubernetes.default.svc'
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true

@@ -1,0 +1,72 @@
+---
+- name: Reset cluster
+  shell: kubeadm reset --force --cri-socket=/var/run/containerd/containerd.sock
+  ignore_errors: true
+
+- name: List all CNI network namespaces
+  shell: ip netns list | awk {'print $1'}
+  register: netns_list
+
+- name: Delete every leftover netns
+  shell: "ip netns delete {{ item }}"
+  loop: "{{ netns_list.stdout_lines
+            | select('match','^cni-')
+            | list }}"
+  ignore_errors: true
+
+- name: Bring down the Calico IP-in-IP tunnel
+  shell: ip link set dev tunl0 down
+  ignore_errors: true
+
+- name: Attempt to unload the ipip module
+  shell: modprobe -r ipip
+  ignore_errors: true
+
+- name: remove blackhole routes if any
+  shell: |
+    for cidr in $(ip route | awk '/blackhole/ {print $2}'); do
+      ip route del $cidr || true
+    done
+
+- name: Remove all CNI network definitions
+  file:
+    path: /etc/cni/net.d
+    state: absent
+
+- name: Recreate empty CNI directory for future installs
+  file:
+    path: /etc/cni/net.d
+    state: directory
+    mode: "0755"
+
+- name: Flush all iptables rules (filter, nat, mangle, raw, security)
+  shell: |
+    iptables -F
+    iptables -X
+    iptables -t nat -F
+    iptables -t nat -X
+    iptables -t mangle -F
+    iptables -t mangle -X
+    iptables -t raw -F
+    iptables -t raw -X
+    iptables -t security -F
+    iptables -t security -X
+
+- name: Remove .kube
+  become: false
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: absent
+  when: inventory_hostname in groups['control-plane']
+
+- name: Remove cluster initialize log
+  file:
+    path: /var/log/cluster_initialized.log
+    state: absent
+  when: inventory_hostname in groups['control-plane']
+
+- name: Remove join log
+  file:
+    path: /var/log/node_joined.log
+    state: absent
+  when: inventory_hostname in groups['worker']

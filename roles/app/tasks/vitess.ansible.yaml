@@ -1,0 +1,31 @@
+---
+- name: Create namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "vitess-{{ env }}"
+
+- name: Setup vitess
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: "vitess-{{ env }}"
+        namespace: argocd
+      spec:
+        project: default
+        sources:
+          - repoURL: "{{ GIT_REPO_URL }}"
+            targetRevision: "{{ env }}"
+            path: "roles/app/files/vitess/overlays/{{ env }}"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: "vitess-{{ env }}"
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true

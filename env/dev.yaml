@@ -1,0 +1,14 @@
+CLUSTER_NAME: apocrypha
+AWS_PROFILE: default
+AWS_CREDS_PATH: "~/.aws/credentials"
+GIT_SSH_KEY_PATH: "~/.ssh/id_rsa_github"
+GIT_REPO_URL: git@github.com:DpHermaeusMora/apocrypha.git
+K8S_VERSION: "1.32.3"
+HELM_VERSION: "3.18.3"
+EXTERNAL_SECRET_VERSION: "0.9.9"
+CERT_MANAGER_VERSION: "1.17.2"
+ROOK_CEPH_VERSION: "1.17.2"
+METALLB_VERSION: "0.14.9"
+VITESS_VERSION: "22.0"
+ECK_VERSION: "3.0.0"
+ISTIO_VERSION: "1.26.2"

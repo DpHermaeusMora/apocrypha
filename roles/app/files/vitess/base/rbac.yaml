@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vitess-rbac
+type: Opaque
+stringData:
+  rbac.yaml: |
+    rules:
+    - resource: "*"
+      actions:
+        - "get"
+        - "create"
+        - "put"
+        - "ping"
+      subjects: ["*"]
+      clusters: ["*"]
+    - resource: "Shard"
+      actions:
+        - "emergency_failover_shard"
+        - "planned_failover_shard"
+      subjects: ["*"]
+      clusters: ["*"]

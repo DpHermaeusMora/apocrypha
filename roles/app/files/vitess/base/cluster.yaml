@@ -1,0 +1,45 @@
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: vitess-cluster
+spec:
+  images:
+    vtctld: vitess/lite:v22.0.1
+    vtadmin: vitess/vtadmin:v22.0.1
+    vtgate: vitess/lite:v22.0.1
+    vttablet: vitess/lite:v22.0.1
+    vtbackup: vitess/lite:v22.0.1
+    vtorc: vitess/lite:v22.0.1
+    mysqld:
+      mysql80Compatible: vitess/lite:v22.0.1
+    mysqldExporter: prom/mysqld-exporter:v0.14.0
+  vitessDashboard:
+    extraFlags:
+      security_policy: read-only
+    replicas: 1
+    resources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  vtadmin:
+    rbac:
+      name: vitess-rbac
+      key: rbac.yaml
+    replicas: 1
+    readOnly: false
+    apiResources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    webResources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  updateStrategy:
+    type: Immediate

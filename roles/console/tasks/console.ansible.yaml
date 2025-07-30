@@ -1,0 +1,95 @@
+---
+- name: Download pip
+  become: false
+  get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: '{{ ansible_env.HOME }}/get-pip.py'
+    mode: '0644'
+
+- name: Install pip
+  become: false
+  shell: python3 {{ ansible_env.HOME }}/get-pip.py --user >> {{ ansible_env.HOME }}/get_pip.log
+  args:
+    creates: "{{ ansible_env.HOME }}/get_pip.log"
+
+- name: Install pip libraries
+  become: false
+  pip:
+    name:
+      - boto3
+      - botocore
+      - kubernetes
+    extra_args: --user
+
+- name: Install gnupg
+  apt:
+    name: gnupg
+    state: present
+
+- name: Add K8s GPG key
+  ansible.builtin.apt_key:
+    url: "https://pkgs.k8s.io/core:/stable:/v{{ K8S_VERSION.split('.')[:2] | join('.') }}/deb/Release.key"
+    keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add K8s apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ K8S_VERSION.split('.')[:2] | join('.') }}/deb/ /"
+
+- name: Add HashiCorp GPG key
+  ansible.builtin.apt_key:
+    url: https://apt.releases.hashicorp.com/gpg
+    keyring: /etc/apt/keyrings/hashicorp-archive-keyring.gpg
+
+- name: Add HashiCorp apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com jammy main"
+    filename: hashicorp
+
+- name: Install Kubectl
+  apt:
+    name: "kubectl={{ K8S_VERSION }}-*"
+    state: present
+
+- name: Create .kube directory (console)
+  become: false
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+    mode: '0755'
+
+- name: Install Terraform
+  apt:
+    name: terraform
+    state: present
+
+- name: Install Argocd
+  get_url:
+    url: "https://github.com/argoproj/argo-cd/releases/download/v3.0.6/argocd-linux-{{ arch }}"
+    dest: /usr/local/bin/argocd
+    mode: '0755'
+
+# - name: Install Telepresence
+#   get_url:
+#     url: "https://github.com/telepresenceio/telepresence/releases/latest/download/telepresence-linux-{{ arch }}"
+#     dest: /usr/local/bin/telepresence
+#     mode: '0755'
+
+- name: Install Wireguard
+  apt:
+    name: wireguard
+    state: present
+
+- name: Install jq
+  apt:
+    name: jq
+    state: present
+
+- name: Install helm
+  unarchive:
+    src: https://get.helm.sh/helm-v{{ HELM_VERSION }}-linux-{{ arch }}.tar.gz
+    dest: /usr/local/bin
+    extra_opts: '--strip-components=1'
+    mode: '0755'
+    remote_src: true
+  args:
+    creates: /usr/local/bin/helm

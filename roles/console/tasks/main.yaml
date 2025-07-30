@@ -1,0 +1,18 @@
+---
+- name: Setup console
+  delegate_to: console
+  become: true
+  import_tasks: console.ansible.yaml
+
+- name: Change admin.conf mode
+  become: true
+  file:
+    path: /etc/kubernetes/admin.conf
+    mode: '0755'
+
+- name: Fetch admin.conf to console
+  become: false
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    flat: true

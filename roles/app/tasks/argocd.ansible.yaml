@@ -1,0 +1,46 @@
+---
+- name: Create Namespace
+  kubernetes.core.k8s:
+    name: argocd
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create Private Repo Secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: private-repo
+        namespace: argocd
+        labels:
+          argocd.argoproj.io/secret-type: repository
+      stringData:
+        type: git
+        url: "{{ GIT_REPO_URL }}"
+        sshPrivateKey: "{{ git_ssh_key.content | b64decode }}"
+
+- name: Create kubernetes resources for lookup output
+  kubernetes.core.k8s:
+    definition: "{{ lookup('kubernetes.core.kustomize', dir='roles/app/files/argocd') }}"
+    state: present
+    namespace: argocd
+
+- name: Get Argocd Initial Password
+  shell: |
+    set -o pipefail
+    kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+  register: argocd_password
+  failed_when: false
+  changed_when: true
+  args:
+    executable: /bin/bash
+
+- name: Set Argocd Initial Password
+  set_fact:
+    argocd_password: "{{ argocd_password.stdout }}"
+  changed_when: true
+  notify: NotifyArgocdInitialPassword
+  when: argocd_password.stdout != ""

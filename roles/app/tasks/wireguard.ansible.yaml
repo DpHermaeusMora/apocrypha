@@ -1,0 +1,29 @@
+---
+- name: Create Namespace
+  kubernetes.core.k8s:
+    name: wireguard
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Setup wireguard
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: wireguard
+        namespace: argocd
+      spec:
+        project: default
+        source:
+          repoURL: "{{ GIT_REPO_URL }}"
+          targetRevision: "{{ env }}"
+          path: "roles/app/files/wireguard"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: wireguard
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true

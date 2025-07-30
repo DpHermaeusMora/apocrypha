@@ -1,0 +1,15 @@
+---
+- name: Read AWS access key ID from credentials file
+  set_fact:
+    aws_access_key_id: >-
+      {{ lookup('ini', 'aws_access_key_id section=' + AWS_PROFILE + ' file=' + AWS_CREDS_PATH) }}
+
+- name: Read AWS secret access key from credentials file
+  set_fact:
+    aws_secret_access_key: >-
+      {{ lookup('ini', 'aws_secret_access_key section=' + AWS_PROFILE + ' file=' + AWS_CREDS_PATH) }}
+
+- name: Read Git SSH key file
+  slurp:
+    src: "{{ GIT_SSH_KEY_PATH }}"
+  register: git_ssh_key

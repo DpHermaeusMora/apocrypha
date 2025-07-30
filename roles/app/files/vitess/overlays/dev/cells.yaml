@@ -1,0 +1,73 @@
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: vitess-cluster
+spec:
+  cells:
+    - name: seoul
+      gateway:
+        authentication:
+          static:
+            secret:
+              name: vitess-credentials
+              key: users.json
+        replicas: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 256Mi
+  vitessDashboard:
+    cells:
+      - seoul
+  vtadmin:
+    apiAddresses:
+      - http://vitess-vtadmin.vitess-dev.svc.cluster.local:15001
+    cells:
+      - seoul
+  keyspaces:
+    - name: main
+      durabilityPolicy: none
+      turndownPolicy: Immediate
+      vitessOrchestrator:
+        resources:
+          limits:
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        extraFlags:
+          instance-poll-time: 1s
+      partitionings:
+        - equal:
+            parts: 1
+            shardTemplate:
+              databaseInitScriptSecret:
+                name: vitess-init-db
+                key: init_db.sql
+              tabletPools:
+                - cell: seoul
+                  type: replica
+                  replicas: 2
+                  vttablet:
+                    extraFlags:
+                      db_charset: utf8mb4
+                    resources:
+                      limits:
+                        memory: 256Mi
+                      requests:
+                        cpu: 100m
+                        memory: 256Mi
+                  mysqld:
+                    resources:
+                      limits:
+                        memory: 1024Mi
+                      requests:
+                        cpu: 100m
+                        memory: 512Mi
+                  dataVolumeClaimTemplate:
+                    accessModes: ["ReadWriteOnce"]
+                    resources:
+                      requests:
+                        storage: 10Gi

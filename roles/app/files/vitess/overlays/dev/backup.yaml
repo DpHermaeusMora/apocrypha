@@ -1,0 +1,28 @@
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: vitess-cluster
+spec:
+  backup:
+    engine: xtrabackup
+    locations:
+      - volume:
+          hostPath:
+            path: /tmp
+            type: Directory
+    schedules:
+      - name: "main"
+        schedule: "*/2 * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: main_x
+            keyspace: "main"
+            shard: "-"

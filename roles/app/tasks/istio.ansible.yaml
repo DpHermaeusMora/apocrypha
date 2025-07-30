@@ -1,0 +1,70 @@
+---
+- name: Helm repo add
+  kubernetes.core.helm_repository:
+    name: istio
+    url: https://istio-release.storage.googleapis.com/charts
+    state: present
+    force_update: true
+
+- name: Create Namespace
+  kubernetes.core.k8s:
+    name: istio-ingress
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Setup istiod
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: istio-base
+        namespace: argocd
+      spec:
+        project: default
+        sources:
+          - repoURL: "{{ GIT_REPO_URL }}"
+            targetRevision: "{{ env }}"
+            path: "roles/app/files/istiod"
+          - repoURL: https://istio-release.storage.googleapis.com/charts
+            chart: base
+            targetRevision: "{{ ISTIO_VERSION }}"
+          - repoURL: https://istio-release.storage.googleapis.com/charts
+            chart: istiod
+            targetRevision: "{{ ISTIO_VERSION }}"
+            helm:
+              valueFiles:
+                - "values.yaml"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: istio-system
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+
+- name: Setup istio-ingress
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: istio-ingress
+        namespace: argocd
+      spec:
+        project: default
+        sources:
+          - repoURL: "{{ GIT_REPO_URL }}"
+            targetRevision: "{{ env }}"
+            path: "roles/app/files/istio_ingress"
+          - repoURL: https://istio-release.storage.googleapis.com/charts
+            chart: gateway
+            targetRevision: "{{ ISTIO_VERSION }}"
+        destination:
+          server: 'https://kubernetes.default.svc'
+          namespace: istio-ingress
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true

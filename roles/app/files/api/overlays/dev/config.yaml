@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-server-config
+data:
+  NODE_ENV: dev
+  WEB_FQDN: dev.apocrypha.in
+  CONSOLE_FQDN: console-dev.apocrypha.in
+  MEDIA_CDN_FQDN: cdn-dev.apocrypha.in
+  MB_NAME: dev-apocrypha-mb
+  MB_INPUT_PREFIX: input
+  EMAIL: dp.hermaeusmora@gmail.com
+  JWT_EXPIRES_HOURS: "24"
+  IMAGE_UPLOAD_TIMEOUT: "10"
+  VIDEO_UPLOAD_TIMEOUT: "300"
+  DB_LOG_LEVEL: query,info,warn,error
+  ES_URL: https://es.eck-dev.svc.cluster.local:9200
+  REDIS_HEADLESS_HOST: "NODE.redis-cluster-headless.redis-dev.svc.cluster.local"
+  REDIS_REPLICAS: "6"

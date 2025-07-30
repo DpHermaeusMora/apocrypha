@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: dev
+
+resources:
+- ../../base
+- config.yaml
+- secrets.yaml
+- eck_secret_store.yaml
+- eck_secrets.yaml
+- rbac.yaml
+- vs.yaml
+- destination_rule.yaml
+
+images:
+- digest: sha256:503048295ded46525e9ebc9d863220b6b9d80380c04261a5b6797b25c1b4daea
+  name: api-server
+  newName: 725349262731.dkr.ecr.ap-northeast-2.amazonaws.com/dev-apocrypha-api
+  newTag: latest

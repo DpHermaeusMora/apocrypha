@@ -1,0 +1,6 @@
+---
+- name: Join cluster
+  shell: "{{ hostvars[item].join_command }} >> /var/log/node_joined.log"
+  args:
+    creates: /var/log/node_joined.log
+  loop: "{{ play_hosts | intersect(groups['control-plane']) }}"

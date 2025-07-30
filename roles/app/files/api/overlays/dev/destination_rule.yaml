@@ -1,0 +1,9 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: api-server-dr
+spec:
+  host: api-server.dev.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE

@@ -1,0 +1,15 @@
+---
+- name: Install k8s
+  become: true
+  import_tasks: k8s.ansible.yaml
+
+- name: Setup control-plane
+  become: true
+  import_tasks: control_plane.ansible.yaml
+  when: inventory_hostname in groups['control-plane']
+
+- name: Setup workers
+  become: true
+  import_tasks: worker.ansible.yaml
+  when: inventory_hostname in groups['worker']
+  
