@@ -22,15 +22,14 @@ ip=<ip:-192.168.0.15>::<gateway_ip:-192.168.0.1>:<subnet_mask:-255.255.255.0>::<
 ## Setup dev environment
 * If all vm has created, you can set up k8s cluster with ansible. If ansible(and docker) does not installed yet, follow commands:
 ```bash
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-python3 get-pip.py --user
-python3 -m pip install --user ansible
-echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
-ansible --version
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install ansible 
+echo 'export PATH=$PATH:$HOME/.local/share/uv/tools/ansible/bin' >> ~/.bashrc
+source ~/.bashrc
 ```
 (If you use ansible vscode extension, set `"ansible.ansible.path": "~/.local/bin/ansible"` for autocomplete)
-* Then simply run `ansible-playbook site.yml -e env=dev -e role=cluster` in a project root for bootstrap the k8s cluster.
-* and run `ansible-playbook site.yml -e env=dev -e role=console` for bootstrap the console.
+* Then simply run `play site.yml -e env=dev -e role=cluster` in a project root for bootstrap the k8s cluster.
+* and run `play site.yml -e env=dev -e role=console` for bootstrap the console.
 
 ## Argocd
 * Get argocd initial password by `kubectl get secret argocd-initial-admin-secret -n argocd -o=jsonpath='{.data.password}' | base64 -d`
