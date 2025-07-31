@@ -22,9 +22,10 @@ ip=<ip:-192.168.0.15>::<gateway_ip:-192.168.0.1>:<subnet_mask:-255.255.255.0>::<
 ## Setup dev environment
 * If all vm has created, you can set up k8s cluster with ansible. If ansible(and docker) does not installed yet, follow commands:
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uv tool install ansible 
-echo 'export PATH=$PATH:$HOME/.local/share/uv/tools/ansible/bin' >> ~/.bashrc
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3 get-pip.py --user
+python3 -m pip install --user ansible
+echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
 echo 'alias play="ansible-playbook"' >> ~/.bashrc
 source ~/.bashrc
 ```
