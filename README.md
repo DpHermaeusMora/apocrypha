@@ -1,10 +1,7 @@
-# What is Apocrypha?
-**Apocrypha is a boilerplate to build a bare-metal kubernetes cluster.**
-
 # Prerequisities
 
 * Ubuntu 22.04 
-* AWS ParameterStore
+* AWS Credentials has permissions for assumeRole: ssm:parameterstore, s3, cloudfront, route53, sqs, ecr
 * 1 control plane node and at least 3 storage nodes with name containing `storage-node` and raw disk attached
 * Minimum 8gb of static ram for each nodes
 
