@@ -25,6 +25,7 @@ ip=<ip:-192.168.0.15>::<gateway_ip:-192.168.0.1>:<subnet_mask:-255.255.255.0>::<
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install ansible 
 echo 'export PATH=$PATH:$HOME/.local/share/uv/tools/ansible/bin' >> ~/.bashrc
+echo 'alias play="ansible-playbook"' >> ~/.bashrc
 source ~/.bashrc
 ```
 (If you use ansible vscode extension, set `"ansible.ansible.path": "~/.local/bin/ansible"` for autocomplete)
