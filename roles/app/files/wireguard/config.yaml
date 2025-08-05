@@ -20,7 +20,7 @@ spec:
               Address = {{ $config.S_NET }}
               ListenPort = {{ $config.S_PORT }}
               PrivateKey = {{ $config.S_KEY }}
-              MTU = 1500
+              MTU = 1280
               DNS = 10.96.0.10, 8.8.8.8
               PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o ENI -j MASQUERADE
               PostUp = iptables -t nat -A POSTROUTING -s {{ $config.S_NET }} -o ENI -j MASQUERADE
