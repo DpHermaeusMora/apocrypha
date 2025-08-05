@@ -86,31 +86,28 @@ class SSMHelper:
                 print(f"Error: {e.response['Error']['Message']}")
             sys.exit(1)
     
-    def list_parameters(self, prefix: str) -> None:
+    def list_parameters(self, path: str) -> None:
         try:
-            paginator = self.ssm.get_paginator('describe_parameters')
+            if not path.startswith('/'):
+                path = '/' + path
+            
+            paginator = self.ssm.get_paginator('get_parameters_by_path')
             
             parameters = []
             for page in paginator.paginate(
-                ParameterFilters=[
-                    {
-                        'Key': 'Name',
-                        'Option': 'BeginsWith',
-                        'Values': [prefix]
-                    }
-                ]
+                Path=path,
+                Recursive=True,
+                WithDecryption=False
             ):
                 parameters.extend(page['Parameters'])
             
             if not parameters:
-                print(f"No parameters found with prefix '{prefix}'")
+                print(f"No parameters found in path '{path}'")
                 return
             
-            # Print table header
             print(f"{'Name':<50} {'Type':<15}")
             print("-" * 65)
             
-            # Print parameters
             for param in parameters:
                 print(f"{param['Name']:<50} {param['Type']:<15}")
                 
@@ -215,7 +212,7 @@ def main():
     
     # List command
     list_parser = command_parser.add_parser('list', help='List parameters')
-    list_parser.add_argument('prefix', help='Parameter name prefix')
+    list_parser.add_argument('path', help='Parameter path (e.g., /app/database/)')
     
     args = parser.parse_args()
     
@@ -246,7 +243,7 @@ def main():
             ssm.delete_parameter(args.name, args.entries)
             
         elif args.command == 'list':
-            ssm.list_parameters(args.prefix)
+            ssm.list_parameters(args.path)
         else:
             parser.print_help()
             sys.exit(1)
