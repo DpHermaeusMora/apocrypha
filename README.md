@@ -39,7 +39,7 @@ source ~/.bashrc
 * Configure wireguard tunnel by `./wgc.py add`
 * Set parameter by `./ssm.py set <SECRET_NAME> "$(./wgc.py show)" -s`
 * Update secret name of `/roles/app/files/wireguard/config.yaml`
-* Configure the wireguard peer. you could copy the configuration from `./wgc.py showpeer -n <PEER_NAME> --host <YOUR_HOST>`
+* Configure the wireguard peer. you could copy the configuration from `./wgc.py --host <YOUR_HOST> showpeer -n <PEER_NAME>`
 
 ## ECK
 * Get user elastic's password by `kubectl get secret -n eck-{env} es-es-elastic-user -o jsonpath='{.data.elastic}' | base64 -d`

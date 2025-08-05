@@ -137,6 +137,10 @@ def main():
     parser.add_argument("-p", "--path", dest="path", type=str, required=False, default=default_path)
     parser.add_argument("--base-net", dest="base_net", type=str, required=False, default=default_base_net)
     parser.add_argument("--base-port", dest="base_port", type=int, required=False, default=default_base_port)
+    parser.add_argument("--host", type=str, required=False, default=default_host)
+    parser.add_argument("--dns", type=str, required=False, default=default_dns)
+    parser.add_argument("--mtu", type=int, required=False, default=default_mtu)
+    parser.add_argument("--allowed-ips", type=str, required=False, default=default_allowed_ips)
     
 
     command_parser = parser.add_subparsers(dest="command", help="Available commands")
@@ -152,10 +156,6 @@ def main():
 
     showpeer_parser = command_parser.add_parser("showpeer", help="Show peers config")
     showpeer_parser.add_argument("-n", "--name", dest="showpeer_name", type=str, help="Name of the server to show peers")
-    showpeer_parser.add_argument("--host", type=str, required=False, default=default_host)
-    showpeer_parser.add_argument("--dns", type=str, required=False, default=default_dns)
-    showpeer_parser.add_argument("--mtu", type=int, required=False, default=default_mtu)
-    showpeer_parser.add_argument("--allowed-ips", type=str, required=False, default=default_allowed_ips)
 
     args = parser.parse_args()
 
