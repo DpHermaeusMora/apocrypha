@@ -36,32 +36,17 @@ source ~/.bashrc
 * Login and change password
 
 ## Wireguard
-* You must add port-forward from external port 51820 to {internal-ip}:51820. Internal ip must be specified in both `IPAddressPool` and annotation `metallb.io/loadBalancerIPs` of wireguard service.
-* Prepare server key set by `wg genkey` and `echo {private key} | wg pubkey`
-* Create Secret on your provider. I strongly recommned to use `AWS ParameterStore`, so that you can easily set configs like this:
-`./ssm set /wireguard -e '{"LIST":[{"NAME":"foo","S_KEY":"..","S_PUBKEY":"..","S_NET":"172.16.16.0/24","S_PORT":51820,"C_PUBKEY":"..","C_NET":"172.16.100.0/24"}]}' -s`
-* **Make sure all properties are unique over whole interfaces**
-* Update secret `wg-config`
-* Client config might be like this: 
-```
-[Interface]
-PrivateKey = ".."
-Address = 172.16.100.0/24
-DNS = 10.96.0.10, 8.8.8.8
-MTU = 1280
-
-[Peer]
-PublicKey = ".."
-AllowedIPs = 0.0.0.0/0
-Endpoint = "..":51820
-```
+* Configure wireguard tunnel by `./wgc.py add`
+* Set parameter by `./ssm.py set <SECRET_NAME> "$(./wgc.py show)" -s`
+* Update secret name of `/roles/app/files/wireguard/config.yaml`
+* Configure the wireguard peer. you could copy the configuration from `./wgc.py showpeer -n <PEER_NAME> --host <YOUR_HOST>`
 
 ## ECK
 * Get user elastic's password by `kubectl get secret -n eck-{env} es-es-elastic-user -o jsonpath='{.data.elastic}' | base64 -d`
 * Login and change password
 
 ## Redis
-* After redis cluster sts ready, you have to create cluster with command: `kubectl exec -it -n ".." redis-0 -- redis-cli --cluster create $(for i in {0..5}; do echo "redis-$i.redis-cluster-headless:6379"; done) --cluster-replicas 1 --cluster-yes`
+* After redis cluster sts ready, you have to create cluster with command: `kubectl exec -it -n <REDIS_NAMESPACE> redis-0 -- redis-cli --cluster create $(for i in {0..5}; do echo "redis-$i.redis-cluster-headless:6379"; done) --cluster-replicas 1 --cluster-yes`
 
 ## Naming Convention
 
