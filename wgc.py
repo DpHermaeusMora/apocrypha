@@ -101,7 +101,7 @@ class WireguardHelper:
         print(f"[Peer]\nPublicKey = {config['S_PUBKEY']}\nAllowedIPs = {self.allowed_ips}\nEndpoint = {self.host}:{config['S_PORT']}\n")
 
     def get_available_net(self, base_net: str) -> str:
-        allocated_nets = {x['S_NET']: 1 for x in self.server_config['LIST']}
+        allocated_nets = {x['S_NET']: 1 for x in self.server_config['LIST']} | {x['C_NET']: 1 for x in self.server_config['LIST']}
         if self.temp_allocated_net:
             allocated_nets[self.temp_allocated_net] = 1
         base_network = ipaddress.ip_network(base_net)
