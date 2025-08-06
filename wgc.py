@@ -105,7 +105,9 @@ class WireguardHelper:
         if self.temp_allocated_net:
             allocated_nets[self.temp_allocated_net] = 1
         base_network = ipaddress.ip_network(base_net)
-        for subnet in base_network.subnets(new_prefix=24):
+        for i, subnet in enumerate(base_network.subnets(new_prefix=24)):
+            if i == 0:
+                continue
             subnet_str = str(subnet)
             if subnet_str not in allocated_nets:
                 self.temp_allocated_net = subnet_str

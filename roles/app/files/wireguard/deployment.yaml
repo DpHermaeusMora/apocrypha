@@ -50,6 +50,8 @@ spec:
           env:
             - name: "TZ"
               value: "Asia/Seoul"
+            - name: "PEERS"
+              value: "example"
           volumeMounts:
             - name: wg-base
               mountPath: /etc/wireguard/
