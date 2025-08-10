@@ -45,17 +45,35 @@ spec:
           readinessProbe:
             exec:
               command:
-                - redis-cli
-                - ping
-            initialDelaySeconds: 10
-            periodSeconds: 5
+                - sh
+                - -c
+                - |
+                  # Check if Redis is responding
+                  redis-cli ping > /dev/null || exit 1
+                  
+                  # For cluster mode, also check cluster state
+                  if redis-cli cluster info > /dev/null 2>&1; then
+                    # If cluster is enabled, check cluster state
+                    redis-cli cluster info | grep -q "cluster_state:ok" || exit 1
+                  fi
+            initialDelaySeconds: 15
+            periodSeconds: 10
           livenessProbe:
             exec:
               command:
-                - redis-cli
-                - ping
-            initialDelaySeconds: 30
-            periodSeconds: 30
+                - sh
+                - -c
+                - |
+                  # Check if Redis is responding
+                  redis-cli ping > /dev/null || exit 1
+                  
+                  # For cluster mode, also check cluster state
+                  if redis-cli cluster info > /dev/null 2>&1; then
+                    # If cluster is enabled, check cluster state
+                    redis-cli cluster info | grep -q "cluster_state:ok" || exit 1
+                  fi
+            initialDelaySeconds: 15
+            periodSeconds: 10
       volumes:
         - name: conf
           configMap:
